@@ -1,0 +1,23 @@
+Fog of War
+Turn System
+    Exploration
+    Improvement
+    "Casting" ? (How build new cities?)
+
+Map System
+Cities
+Buildings
+    Farm
+    Lumber Mill
+    Mine
+
+Game System
+    Turn taking accumulates resources
+
+Leveling
+
+Terrain Gen
+
+
+
+Combat

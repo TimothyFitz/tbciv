@@ -1,0 +1,114 @@
+@mixin text-shadow($shadows, $outline_color:#fff) {
+    @if $shadows == black {
+        $shadows: 0 -1px 0 #000;
+    }
+    @if $shadows == darker {
+        $shadows: 0 -1px 0 rgba(#000, 0.7);
+    }
+    @if $shadows == dark {
+        $shadows: 0 -1px 0 rgba(#000, 0.4);
+    }
+    @if $shadows == lighter {
+        $shadows: 0 1px 0 rgba(#fff, 0.4);
+    }
+    @if $shadows == light {
+        $shadows: 0 1px 0 rgba(#fff, 0.6);
+    }
+    @if $shadows == white {
+        $shadows: 0 1px 0 #fff;
+    }
+    @if $shadows == outline {
+        $shadows: 1px 1px $outline_color, 1px -1px 0 $outline_color, -1px 1px 0 $outline_color, -1px -1px 0 $outline_color;
+    }
+    text-shadow: $shadows;
+}
+
+@mixin box-shadow($shadows) {
+    -webkit-box-shadow: $shadows;
+    -moz-box-shadow: $shadows;
+    box-shadow: $shadows;
+}
+
+$bgcolor: #322;
+
+.tile {
+    display: inline-block;
+    background-image: url(/img/tiles.png);
+    width: 60px;
+    height: 60px;
+
+    border: 2px solid $bgcolor;
+    border-radius: 10px;
+
+    &.fogged {
+        background-image: none;
+        background-color: $bgcolor;
+    }
+
+    &.selected {
+        @include box-shadow(0 0 3px 1px #39F);
+        position: relative;
+        z-index: 5;
+        border: 2px solid #39F;
+        cursor: pointer;
+
+        &.depressed {
+            margin-top: 2px;
+        }
+    }
+
+    div {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
+
+.map {
+    width: 1200px;
+    position: absolute;
+
+    .tile {
+        position: absolute;
+    }
+}
+
+.map_frame {
+    width: 800px;
+    height: 600px;
+    overflow: hidden;
+    background-color: $bgcolor;
+    position: relative;
+}
+
+.inspector {
+    width: 200px;
+    height: 600px;
+    background-color: blue;
+}
+
+.map_frame, .inspector {
+    float: left;
+}
+
+.ui {
+    width: 1000px;
+}
+
+* {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+body {
+    background-color: #DDD;
+}
