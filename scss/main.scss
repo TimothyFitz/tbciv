@@ -31,11 +31,15 @@
 
 $bgcolor: #322;
 
-.tile {
-    display: inline-block;
+@mixin tileset_img() {
     background-image: url(/img/tiles.png);
     width: 60px;
     height: 60px;
+}
+
+.tile {
+    display: inline-block;
+    @include tileset_img();
 
     border: 2px solid $bgcolor;
     border-radius: 10px;
@@ -57,11 +61,14 @@ $bgcolor: #322;
         }
     }
 
-    div {
+    .building {
+        @include tileset_img();
         position: absolute;
         left: 0;
         top: 0;
     }
+
+
 }
 
 .map {
@@ -73,18 +80,25 @@ $bgcolor: #322;
     }
 }
 
+$ui_frame: #838393;
+
 .map_frame {
     width: 800px;
     height: 600px;
     overflow: hidden;
     background-color: $bgcolor;
     position: relative;
+    border: 2px solid $ui_frame;
+    border-right: none;
 }
 
 .inspector {
     width: 200px;
     height: 600px;
-    background-color: blue;
+    background-color: #b3b3c3;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border: 2px solid $ui_frame;
 }
 
 .map_frame, .inspector {

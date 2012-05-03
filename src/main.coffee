@@ -1,6 +1,14 @@
 
 tile_size = 60
 
+tile_css = (id, $sel) -> 
+    tx = -(id % 20) * tile_size
+    ty = -(Math.floor(id / 20)) * tile_size
+
+    $sel.css { 
+        backgroundPosition: tx.toString() + " " + ty.toString()
+    }
+
 class Tile
     constructor: (@x, @y, @map, @name) ->
         @data = tile_data[@name];
@@ -13,15 +21,22 @@ class Tile
 
     update: ($sel) ->
         $sel = if $sel then $sel else @sel
-        tx = -(@icon % 20) * tile_size
-        ty = -(Math.floor(@icon / 20)) * tile_size
         $sel.data 'tile', this
         $sel.toggleClass 'fogged', @fogged
+
         $sel.css {
-            backgroundPosition: tx.toString() + " " + ty.toString()
             left: @left()
             top: @top()
         }
+
+        tile_css @icon, $sel
+
+        $building = $sel.find '.building'
+        $building.remove()
+        if @building
+            $sel.append @building.div()
+
+        $sel
 
     left: () ->
         @x * 60
@@ -29,8 +44,7 @@ class Tile
     top: () ->
         @y * 60
 
-    bind: ($sel) ->
-        @sel = $sel
+    bind: (@sel) ->
 
     act: () ->
         if @fogged
@@ -45,11 +59,20 @@ class Tile
                 @fogged = false
                 @update()
                 return true
-            else
-                console.log 'surrounded by fog'
-                return false
+
+            console.log 'surrounded by fog'
+            return false
+
+        if not @building and @data.building
+            @add_building new Building(@data.building)
+            @update()
+            return true
 
         false
+
+    add_building: (building) ->
+        @building = building
+        game.buildings.push building
 
 class Map
     constructor: (@root, @width, @height) ->
@@ -75,18 +98,59 @@ class Map
     set: (x, y, item) ->
         @tiles[y][x] = item
 
+class Building
+    constructor: (@name) ->
+        @data = building_data[@name]
+        @level = 1
+
+    div: () ->
+        $building = $("<div>").addClass('building')
+        $building.addClass @name
+        tile_css @data.icon, $building
+
+        $building
+
+class Inspector
+    constructor: (@root) ->
+
+
+    value_names: ["food", "d_food", "wood", "d_wood", "ore", "d_ore", "turn"]
+
+    update: (game) ->
+
+        for name in @value_names
+            @root.find('.' + name).text game[name]
+
 tile_data = {
     grass: {
         icons: [20]
         pop: 10
+        building: "farm"
     }
     forest: {
         icons: [204, 205, 206, 207]
         wood: 10
+        building: "lumber_mill"
     }
     mountain: {
         icons: [208]
         ore: 10
+        building: "mine"
+    }
+}
+
+building_data = {
+    mine: {
+        icon: 249
+        ore: 10
+    }
+    lumber_mill: {
+        icon: 254
+        wood: 10
+    }
+    farm: {
+        icon: 139
+        food: 10
     }
 }
 
@@ -98,7 +162,39 @@ click_dist = (e1, e2) ->
 random_choice = (list) -> list[Math.floor(Math.random() * list.length)]
 
 window.ui = {}
-window.game = {}
+
+class Game
+    constructor: () ->
+        @turn =  0
+        @food =  0
+        @d_food =  0
+        @ore =  0
+        @d_ore =  0
+        @wood =  0
+        @d_wood =  0
+        @buildings = []
+
+    take_turn: (tile) ->
+        did_act = tile.act()
+        if not did_act
+            return
+
+        @turn++
+
+        @d_food = @d_ore = @d_wood = 0
+
+        for building in @buildings
+            @d_food += building.data.food || 0
+            @d_ore += building.data.ore || 0
+            @d_wood += building.data.wood || 0
+
+        @food += @d_food
+        @ore += @d_ore
+        @wood += @d_wood
+
+        ui.inspector.update(this)
+
+window.game = new Game
 
 window.game_start = () ->
     game.map = new Map $('.map'), 20, 20
@@ -117,13 +213,15 @@ window.game_start = () ->
         $(window).one 'mouseup', (second) =>
             if click_dist(first, second) < 10
                 if $this.hasClass 'depressed'
-                    $this.data('tile').act()
+                    game.take_turn $this.data('tile')
                 else
                     $('.map .tile.selected').removeClass 'selected'
                     $this.addClass 'selected'
 
             $this.removeClass 'depressed'
 
+
+    ui.inspector = new Inspector $('.inspector')
     ui.map_frame = new EasyScroller $('.map').get 0, {
         scrollingX: true 
         scrollingY: true

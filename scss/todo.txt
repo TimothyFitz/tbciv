@@ -1,15 +1,15 @@
+Cities
+
+
+FIRST PASS: Buildings
+    Farm
+    Lumber Mill
+    Mine
 
 Turn System
     Exploration
     Improvement
     "Casting" ? (How build new cities?)
-
-Map System
-Cities
-Buildings
-    Farm
-    Lumber Mill
-    Mine
 
 Game System
     Turn taking accumulates resources
@@ -19,7 +19,7 @@ Leveling
 Terrain Gen
 
 
-
+FIRST PASS: Map System
 FIRST PASS: Fog of War
 
 
