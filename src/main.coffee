@@ -19,9 +19,15 @@ class Tile
         $sel.toggleClass 'fogged', @fogged
         $sel.css {
             backgroundPosition: tx.toString() + " " + ty.toString()
-            left: @x * 60
-            top: @y * 60
+            left: @left()
+            top: @top()
         }
+
+    left: () ->
+        @x * 60
+
+    top: () ->
+        @y * 60
 
     bind: ($sel) ->
         @sel = $sel
@@ -42,8 +48,6 @@ class Tile
             else
                 console.log 'surrounded by fog'
                 return false
-        
-
 
         false
 
@@ -120,10 +124,13 @@ window.game_start = () ->
 
             $this.removeClass 'depressed'
 
-    ui.map = new EasyScroller $('.map').get 0, {
+    ui.map_frame = new EasyScroller $('.map').get 0, {
         scrollingX: true 
         scrollingY: true
         zooming: true
         minZoom: 0.25
         maxZoom: 4
     }
+
+    target_tile = game.map.get 10,10
+    ui.map_frame.scroller.scrollTo target_tile.left() - $('.map_frame').width()/2 + tile_size/2, target_tile.top() - $('.map_frame').height()/2 + tile_size/2

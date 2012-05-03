@@ -1,0 +1,14 @@
+Fog of war:
+    Cities could slowly "push" the fog of war back, so you wouldn't have to "fill in the gaps" around your city.
+    OR, filling in the gaps could be a simple way to pass cycles at times? (When wouldn't you want to explore of exploring is fun? City with blind spots looks lame though)
+
+Terrain Generator:
+    Mazing would be a lot of fun
+    Walls with rare entrances seperating climates / zones
+
+    Terrain that's fun to explore vs Terrain that's fun to settle down in (no settling?)
+
+    Terrain "Rares"
+        Brown, Blue, Red, Gold borders (plus flourished tiles themselves)
+        Indicates scarcity of tile, instantly makes them feel awesome
+        (Diablo / Magic:TG)
