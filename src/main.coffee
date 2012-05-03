@@ -2,7 +2,7 @@
 tile_size = 60
 
 class Tile
-    constructor: (@x, @y, @name) ->
+    constructor: (@x, @y, @map, @name) ->
         @data = tile_data[@name];
         @icon = random_choice(@data.icons)
         @fogged = true;
@@ -28,15 +28,42 @@ class Tile
 
     act: () ->
         if @fogged
-            @fogged = false
-            @update()
+            surrounded_by_fog = (
+                @map.getattr(@x - 1, @y, "fogged", true)  &&
+                @map.getattr(@x + 1, @y, "fogged", true) && 
+                @map.getattr(@x, @y - 1, "fogged", true) && 
+                @map.getattr(@x, @y + 1, "fogged", true)
+            )
+
+            if not surrounded_by_fog
+                @fogged = false
+                @update()
+                return true
+            else
+                console.log 'surrounded by fog'
+                return false
+        
+
+
+        false
 
 class Map
-    constructor: (@width, @height) ->
+    constructor: (@root, @width, @height) ->
         @tiles = (new Array(@width) for n in [0..@height])
+        @root.css {
+            width: tile_size * @width
+            height: tile_size * @height
+        }
 
     create_tile: (x, y, args...) ->
-        @set x, y, new Tile(x,y, args...)
+        @set x, y, new Tile(x,y, this, args...)
+
+    getattr: (x,y, attr, default_value) ->
+        if 0 <= x < @width and 0 <= y < @height
+            tile = @get x,y
+            if tile
+                return tile[attr]
+        default_value
 
     get: (x, y) ->
         @tiles[y][x]
@@ -70,11 +97,12 @@ window.ui = {}
 window.game = {}
 
 window.game_start = () ->
-    game.map = new Map 20, 20
+    game.map = new Map $('.map'), 20, 20
     for x in [0..20]
         for y in [0..20]
             tile_name = random_choice ["grass", "grass", "grass", "grass", "forest", "forest", "mountain"]
             tile = game.map.create_tile(x, y, tile_name)
+            if x == y == 10 then tile.fogged = false
             $('.map').append tile.div()
 
     $('.map').delegate '.tile', 'mousedown', (first) -> 
