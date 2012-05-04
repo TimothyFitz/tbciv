@@ -43,6 +43,7 @@ $bgcolor: #322;
 
     border: 2px solid $bgcolor;
     border-radius: 10px;
+    position: relative;
 
     &.fogged {
         background-image: none;
@@ -82,9 +83,13 @@ $bgcolor: #322;
 
 $ui_frame: #838393;
 
+$inspector_width: 200px;
+
+$ui_height: 600px;
+
 .map_frame {
     width: 800px;
-    height: 600px;
+    height: $ui_height;
     overflow: hidden;
     background-color: $bgcolor;
     position: relative;
@@ -93,12 +98,29 @@ $ui_frame: #838393;
 }
 
 .inspector {
-    width: 200px;
-    height: 600px;
+    width: $inspector_width;
+    height: $ui_height;
     background-color: #b3b3c3;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     border: 2px solid $ui_frame;
+    overflow: hidden;
+
+    > div {
+        width: $inspector_width;
+        height: $ui_height / 2;
+    }
+
+    .top {
+        border-bottom: 2px solid $ui_frame;
+        li {
+            padding: 0.2em 0.5em;
+        }
+    }
+
+    .bottom {
+        padding: 4px;
+    }
 }
 
 .map_frame, .inspector {
@@ -126,4 +148,14 @@ $ui_frame: #838393;
 
 body {
     background-color: #DDD;
+}
+
+ul, li {
+    margin: 0;
+    display: block;
+    padding: 0;
+}
+
+.templates {
+    display: none;
 }

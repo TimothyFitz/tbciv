@@ -17,17 +17,16 @@ class Tile
 
     div: () ->
         @bind $('<div>').addClass('tile')
+        @sel.css {
+            left: @left()
+            top: @top()
+        }
         @update()
 
     update: ($sel) ->
         $sel = if $sel then $sel else @sel
         $sel.data 'tile', this
         $sel.toggleClass 'fogged', @fogged
-
-        $sel.css {
-            left: @left()
-            top: @top()
-        }
 
         tile_css @icon, $sel
 
@@ -74,6 +73,16 @@ class Tile
         @building = building
         game.buildings.push building
 
+    update_panel: ($panel) ->
+        $panel.append $('.templates .tile_panel').clone()
+        @update $panel.find('.tile')
+
+        if @fogged
+            $panel.find('.name').text "???"
+            return
+
+        $panel.find('.name').text @name
+
 class Map
     constructor: (@root, @width, @height) ->
         @tiles = (new Array(@width) for n in [0..@height])
@@ -112,14 +121,22 @@ class Building
 
 class Inspector
     constructor: (@root) ->
-
+        @panel = @root.find '.bottom'
 
     value_names: ["food", "d_food", "wood", "d_wood", "ore", "d_ore", "turn"]
 
-    update: (game) ->
+    bind_panel: (@panel_tile) ->
+        @update_panel()
 
+    update: (game) ->
         for name in @value_names
             @root.find('.' + name).text game[name]
+
+        @update_panel()
+
+    update_panel: () ->
+        ui.inspector.panel.empty()
+        @panel_tile.update_panel @panel
 
 tile_data = {
     grass: {
@@ -207,19 +224,21 @@ window.game_start = () ->
 
     $('.map').delegate '.tile', 'mousedown', (first) -> 
         $this = $(this)
+        tile = $this.data('tile')
+
         if $this.hasClass 'selected'
             $this.addClass 'depressed'
 
         $(window).one 'mouseup', (second) =>
             if click_dist(first, second) < 10
                 if $this.hasClass 'depressed'
-                    game.take_turn $this.data('tile')
+                    game.take_turn tile
                 else
                     $('.map .tile.selected').removeClass 'selected'
                     $this.addClass 'selected'
+                    ui.inspector.bind_panel tile
 
             $this.removeClass 'depressed'
-
 
     ui.inspector = new Inspector $('.inspector')
     ui.map_frame = new EasyScroller $('.map').get 0, {

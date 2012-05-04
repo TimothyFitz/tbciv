@@ -1,0 +1,2 @@
+food/ore/wood: exponential (increasing deltas linearly)
+pop: linear? (subtract from dfood)
