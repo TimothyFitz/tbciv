@@ -136,7 +136,17 @@ class Inspector
 
     update_panel: () ->
         ui.inspector.panel.empty()
-        @panel_tile.update_panel @panel
+        if @panel_tile then @panel_tile.update_panel @panel
+
+class TimeoutSingleton
+    constructor: (@delay) ->
+
+    call: (fun) ->
+        @cancel()
+        @timeout = setTimeout fun, @delay
+
+    cancel: () ->
+        clearTimeout(@timeout)
 
 tile_data = {
     grass: {
@@ -222,21 +232,26 @@ window.game_start = () ->
             if x == y == 10 then tile.fogged = false
             $('.map').append tile.div()
 
-    $('.map').delegate '.tile', 'mousedown', (first) -> 
+    ui.map = $('.map')
+
+
+    hover_update = new TimeoutSingleton 20
+    ui.map.bind 'mousemove', (event) ->
+        hover_update.call () ->
+            ui.map.find('.tile.selected').removeClass 'selected'
+            $tile = $(event.target).closest '.tile'
+            $tile.addClass 'selected'
+            ui.inspector.bind_panel $tile.data('tile')
+
+    ui.map.delegate '.tile', 'mousedown', (first) ->
         $this = $(this)
         tile = $this.data('tile')
 
-        if $this.hasClass 'selected'
-            $this.addClass 'depressed'
+        $this.addClass 'depressed'
 
         $(window).one 'mouseup', (second) =>
             if click_dist(first, second) < 10
-                if $this.hasClass 'depressed'
-                    game.take_turn tile
-                else
-                    $('.map .tile.selected').removeClass 'selected'
-                    $this.addClass 'selected'
-                    ui.inspector.bind_panel tile
+                game.take_turn tile
 
             $this.removeClass 'depressed'
 

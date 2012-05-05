@@ -58,6 +58,7 @@ $bgcolor: #322;
         cursor: pointer;
 
         &.depressed {
+            @extend .tile.selected;
             margin-top: 2px;
         }
     }
