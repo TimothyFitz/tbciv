@@ -12,11 +12,11 @@ tile_css = (id, $sel) ->
 class Tile
     constructor: (@x, @y, @map, @name) ->
         @data = tile_data[@name];
-        @icon = random_choice(@data.icons)
+        @icon = random_choice @data.icons
         @fogged = true;
 
     div: () ->
-        @bind $('<div>').addClass('tile')
+        @bind $('<div>').addClass 'tile'
         @sel.css {
             left: @left()
             top: @top()
@@ -45,27 +45,22 @@ class Tile
 
     bind: (@sel) ->
 
-    act: () ->
+    get_action: () ->
         if @fogged
             surrounded_by_fog = (
                 @map.getattr(@x - 1, @y, "fogged", true)  &&
-                @map.getattr(@x + 1, @y, "fogged", true) && 
-                @map.getattr(@x, @y - 1, "fogged", true) && 
+                @map.getattr(@x + 1, @y, "fogged", true) &&
+                @map.getattr(@x, @y - 1, "fogged", true) &&
                 @map.getattr(@x, @y + 1, "fogged", true)
             )
 
             if not surrounded_by_fog
-                @fogged = false
-                @update()
-                return true
+                return new Explore this
 
-            console.log 'surrounded by fog'
             return false
 
         if not @building and @data.building
-            @add_building new Building(@data.building)
-            @update()
-            return true
+            return new AddBuilding this
 
         false
 
@@ -73,15 +68,63 @@ class Tile
         @building = building
         game.buildings.push building
 
-    update_panel: ($panel) ->
-        $panel.append $('.templates .tile_panel').clone()
-        @update $panel.find('.tile')
+    update_panel_info: ($panel) ->
+        @update $panel.find '.tile'
 
         if @fogged
             $panel.find('.name').text "???"
             return
 
         $panel.find('.name').text @name
+
+    update_panel_action: ($panel, action) ->
+        if not action
+            $panel.find('.action_info').remove()
+            return
+
+        $panel.find('.action').text action.explain()
+
+        cost = action.cost()
+
+        if $.isEmptyObject cost
+            $panel.find('.cost_info').hide()
+        else
+            cost_text = []
+            cost_text.push cost.food.toString() + " food" if cost.food
+            cost_text.push cost.wood.toString() + " wood" if cost.wood
+            cost_text.push cost.ore.toString() + " ore" if cost.ore
+
+            $panel.find('.cost').text cost_text.join(", ") + "."
+
+
+    update_panel: ($panel) ->
+        $panel.append $('.templates .tile_panel').clone()
+        @update_panel_info $panel
+
+        @update_panel_action $panel, @get_action()
+
+class Action
+    constructor: (@tile) ->
+
+class AddBuilding extends Action
+    act: () ->
+        @tile.add_building  new Building @tile.data.building
+
+    explain: () ->
+        "add a building"
+
+    cost: () -> { wood: 10 }
+
+class Explore extends Action
+    act: () ->
+        @tile.fogged = false
+        for own resource, value of @tile.data.explore_bonus
+            game[resource] += value
+
+    explain: () ->
+        "explore"
+
+    cost: () -> {}
 
 class Map
     constructor: (@root, @width, @height) ->
@@ -136,7 +179,7 @@ class Inspector
 
     update_panel: () ->
         ui.inspector.panel.empty()
-        if @panel_tile then @panel_tile.update_panel @panel
+        @panel_tile.update_panel @panel if @panel_tile
 
 class TimeoutSingleton
     constructor: (@delay) ->
@@ -146,22 +189,22 @@ class TimeoutSingleton
         @timeout = setTimeout fun, @delay
 
     cancel: () ->
-        clearTimeout(@timeout)
+        clearTimeout @timeout
 
 tile_data = {
     grass: {
         icons: [20]
-        pop: 10
+        explore_bonus: {}
         building: "farm"
     }
     forest: {
         icons: [204, 205, 206, 207]
-        wood: 10
+        explore_bonus: { wood: 5 }
         building: "lumber_mill"
     }
     mountain: {
         icons: [208]
-        ore: 10
+        explore_bonus: { ore: 5 }
         building: "mine"
     }
 }
@@ -169,15 +212,15 @@ tile_data = {
 building_data = {
     mine: {
         icon: 249
-        ore: 10
+        ore: 1
     }
     lumber_mill: {
         icon: 254
-        wood: 10
+        wood: 1
     }
     farm: {
         icon: 139
-        food: 10
+        food: 1
     }
 }
 
@@ -202,9 +245,22 @@ class Game
         @buildings = []
 
     take_turn: (tile) ->
-        did_act = tile.act()
-        if not did_act
+        action = tile.get_action()
+
+        if not action
             return
+
+        cost = action.cost()
+
+        for own resource, amount of cost
+            if game[resource] < amount
+                return
+
+        for own resource, amount of cost
+            game[resource] -= amount
+
+        action.act()
+        tile.update()
 
         @turn++
 
@@ -229,7 +285,7 @@ window.game_start = () ->
         for y in [0..20]
             tile_name = random_choice ["grass", "grass", "grass", "grass", "forest", "forest", "mountain"]
             tile = game.map.create_tile(x, y, tile_name)
-            if x == y == 10 then tile.fogged = false
+            tile.fogged = false if x == y == 10
             $('.map').append tile.div()
 
     ui.map = $('.map')

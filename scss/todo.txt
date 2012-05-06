@@ -1,18 +1,28 @@
+FIRST PASS: Map System
+FIRST PASS: Fog of War
+
 UI:
-    Hover lags behind mouse (setTimout shenanigans)
-    Make the game 1 click instead of 2 click
-
-
-Cities
-
+    DONE: Hover lags behind mouse (setTimout shenanigans)
+    DONE: Make the game 1 click instead of 2 click
 
 FIRST PASS: Buildings
     Farm
     Lumber Mill
     Mine
 
+
+
+Buildings cost resources, can't be built w/o
+
+
+
+
+Cities
+
+
+
 Turn System
-    Exploration
+    DONE: Exploration
     Improvement
     "Casting" ? (How build new cities?)
 
@@ -22,10 +32,6 @@ Game System
 Leveling
 
 Terrain Gen
-
-
-FIRST PASS: Map System
-FIRST PASS: Fog of War
 
 
 Combat
