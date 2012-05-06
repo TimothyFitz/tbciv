@@ -68,6 +68,25 @@ $bgcolor: #322;
         position: absolute;
         left: 0;
         top: 0;
+
+        .progress_frame {
+            position: absolute;
+            width: 56px;
+            bottom: 4px;
+            height: 10px;
+
+            border-top: 1px solid black;
+            border-bottom-right-radius: 10px;
+            border-bottom-left-radius: 10px;
+
+            .progress_bar {
+                height: 100%;
+                border-bottom-right-radius: 10px;
+                border-bottom-left-radius: 10px;
+                background-color: blue;
+                opacity: 0.5;
+            }
+        }
     }
 
 

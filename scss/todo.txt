@@ -12,8 +12,8 @@ FIRST PASS: Buildings
 
 
 
-Buildings cost resources, can't be built w/o
-
+DONE: Buildings cost resources, can't be built w/o
+Make buildings upgradeable
 
 
 

@@ -9,6 +9,14 @@ tile_css = (id, $sel) ->
         backgroundPosition: tx.toString() + " " + ty.toString()
     }
 
+amount_text = (amount) ->
+    text = []
+    text.push amount.food.toString() + " food" if amount.food
+    text.push amount.wood.toString() + " wood" if amount.wood
+    text.push amount.ore.toString() + " ore" if amount.ore
+
+    text.join ", "
+
 class Tile
     constructor: (@x, @y, @map, @name) ->
         @data = tile_data[@name];
@@ -33,7 +41,7 @@ class Tile
         $building = $sel.find '.building'
         $building.remove()
         if @building
-            $sel.append @building.div()
+            $sel.append @building.create_div()
 
         $sel
 
@@ -62,6 +70,10 @@ class Tile
         if not @building and @data.building
             return new AddBuilding this
 
+        if @building and @building.ready()
+            return new Harvest this
+
+
         false
 
     add_building: (building) ->
@@ -89,12 +101,7 @@ class Tile
         if $.isEmptyObject cost
             $panel.find('.cost_info').hide()
         else
-            cost_text = []
-            cost_text.push cost.food.toString() + " food" if cost.food
-            cost_text.push cost.wood.toString() + " wood" if cost.wood
-            cost_text.push cost.ore.toString() + " ore" if cost.ore
-
-            $panel.find('.cost').text cost_text.join(", ") + "."
+            $panel.find('.cost').text amount_text(cost) + "."
 
 
     update_panel: ($panel) ->
@@ -105,6 +112,8 @@ class Tile
 
 class Action
     constructor: (@tile) ->
+
+    cost: () -> {}
 
 class AddBuilding extends Action
     act: () ->
@@ -118,13 +127,17 @@ class AddBuilding extends Action
 class Explore extends Action
     act: () ->
         @tile.fogged = false
-        for own resource, value of @tile.data.explore_bonus
-            game[resource] += value
+        game.gain_resources @tile.data.explore_bonus
 
     explain: () ->
         "explore"
 
-    cost: () -> {}
+class Harvest extends Action
+    act: () ->
+        game.gain_resources @tile.building.harvest()
+
+    explain: () ->
+        "harvest for " + amount_text(@tile.building.harvest_amount())
 
 class Map
     constructor: (@root, @width, @height) ->
@@ -151,16 +164,52 @@ class Map
         @tiles[y][x] = item
 
 class Building
+    next_id: 1
+
     constructor: (@name) ->
         @data = building_data[@name]
         @level = 1
+        @ticks = 0
+        @id = Building::next_id++
 
-    div: () ->
-        $building = $("<div>").addClass('building')
-        $building.addClass @name
-        tile_css @data.icon, $building
+    create_div: () ->
+        @div = $("<div>").addClass 'building'
+        @div.addClass @name
+        tile_css @data.icon, @div
 
-        $building
+        progress_frame = $("<div>").addClass 'progress_frame'
+        progress_bar = $("<div>").addClass 'progress_bar'
+        progress_bar.addClass @css_class()
+
+        progress_frame.append progress_bar
+        @div.append progress_frame
+
+        @update()
+        @div
+
+    css_class: () ->
+        'pb_' + @id.toString()
+
+    max_ticks: () ->
+        @level * 3 + 1
+
+    ready: () ->
+        @ticks >= @max_ticks()
+
+    tick: () ->
+        @ticks++ unless @ready()
+
+    harvest_amount: () ->
+        amount = {}
+        amount[@data.resource] = @level * 3
+        return amount
+
+    harvest: () ->
+        @ticks = 0
+        return @harvest_amount()
+
+    update: () ->
+        $('.' + @css_class()).css "width", (@ticks / @max_ticks() * 100).toString() + "%"
 
 class Inspector
     constructor: (@root) ->
@@ -212,15 +261,15 @@ tile_data = {
 building_data = {
     mine: {
         icon: 249
-        ore: 1
+        resource: "ore"
     }
     lumber_mill: {
         icon: 254
-        wood: 1
+        resource: "wood"
     }
     farm: {
         icon: 139
-        food: 1
+        resource: "food"
     }
 }
 
@@ -240,7 +289,7 @@ class Game
         @d_food =  0
         @ore =  0
         @d_ore =  0
-        @wood =  0
+        @wood =  200
         @d_wood =  0
         @buildings = []
 
@@ -262,8 +311,13 @@ class Game
         action.act()
         tile.update()
 
+        for building in @buildings
+            building.tick()
+            building.update()
+
         @turn++
 
+        ###
         @d_food = @d_ore = @d_wood = 0
 
         for building in @buildings
@@ -274,8 +328,13 @@ class Game
         @food += @d_food
         @ore += @d_ore
         @wood += @d_wood
+        ###
 
         ui.inspector.update(this)
+
+    gain_resources: (resources) ->
+        for own resource, value of resources
+            @[resource] += value
 
 window.game = new Game
 
@@ -289,7 +348,6 @@ window.game_start = () ->
             $('.map').append tile.div()
 
     ui.map = $('.map')
-
 
     hover_update = new TimeoutSingleton 20
     ui.map.bind 'mousemove', (event) ->
