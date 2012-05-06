@@ -70,9 +70,11 @@ class Tile
         if not @building and @data.building
             return new AddBuilding this
 
-        if @building and @building.ready()
-            return new Harvest this
-
+        if @building
+            if @building.ready()
+                return new Harvest this
+            else
+                return new Upgrade this
 
         false
 
@@ -138,6 +140,17 @@ class Harvest extends Action
 
     explain: () ->
         "harvest for " + amount_text(@tile.building.harvest_amount())
+
+class Upgrade extends Action
+    act: () ->
+        @tile.building.level++
+
+    explain: () ->
+        "upgrade"
+
+    cost: () -> {
+            wood: @tile.building.level * 10
+        }
 
 class Map
     constructor: (@root, @width, @height) ->
