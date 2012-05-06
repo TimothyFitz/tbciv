@@ -209,7 +209,9 @@ class Building
         return @harvest_amount()
 
     update: () ->
-        $('.' + @css_class()).css "width", (@ticks / @max_ticks() * 100).toString() + "%"
+        progress_bars = $('.' + @css_class())
+        progress_bars.css "width", (@ticks / @max_ticks() * 100).toString() + "%"
+        progress_bars.toggleClass 'ready', @ready()
 
 class Inspector
     constructor: (@root) ->

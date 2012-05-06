@@ -83,8 +83,13 @@ $bgcolor: #322;
                 height: 100%;
                 border-bottom-right-radius: 10px;
                 border-bottom-left-radius: 10px;
-                background-color: blue;
                 opacity: 0.5;
+
+                background-color: #55F;
+
+                &.ready {
+                    background-color: #22F;
+                }
             }
         }
     }
